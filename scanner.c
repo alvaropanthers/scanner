@@ -105,19 +105,28 @@ void log_attempt(int pid, char* user, char* ip, char* port){
     ++currentLogged;
   }
   
-  return;
 }
 
-void extract_words(char* msg, bool root){
-  char* words[MAX_WORDS];
-
-  int counter = 0;
-  words[counter] = strtok(msg, " ");
+/**
+ *  
+ * Breaks a line  into a buffer by the given delimiter
+ * returns an allocated char** buffer. Buffer must be free
+ * */
+char** break_line(char* line, int* counter, char* delimiter){
+  char** words = (char**)malloc(sizeof(char*) * MAX_WORDS);
+  words[*counter] = strtok(line, delimiter);
   char* tmp;
-  while((tmp = strtok(NULL, " ")) && counter < MAX_WORDS){
-    ++counter;
-    words[counter] = tmp;
+  while((tmp = strtok(NULL, " ")) && *counter < MAX_WORDS){
+    ++(*counter);
+    words[*counter] = tmp;
   }
+
+  return words;
+}
+
+void extract_words(char* line, bool root){
+  int counter = 0;
+  char** words = break_line(line, &counter, " ");
 
   int pid;
   char user[100], ip[100], port[100];
@@ -136,7 +145,8 @@ void extract_words(char* msg, bool root){
           pid = extract_pid(words[x]);
   }
 
-  log_attempt(pid, user, ip, port);
+  free(words);
+  log_attempt(pid, user, ip, port); //This should not be done here
 }
 
 void parse_file(char* fileName){
@@ -153,12 +163,11 @@ void parse_file(char* fileName){
 
   char tmp[MAX_LINE_SIZE];
   //fgets is getting a new line at a time
-  while(fgets(tmp, MAX_LINE_SIZE, file)){
-    if(strstr(tmp, SSH_DEF) && strstr(tmp, "Failed") && strstr(tmp, "root"))
+  while(fgets(tmp, MAX_LINE_SIZE, file))
+    if(strstr(tmp, SSH_DEF) && strstr(tmp, FAILED) && strstr(tmp, ROOT))
       extract_words(tmp, true);
-    else if(strstr(tmp, SSH_DEF) && strstr(tmp, "Failed"))
+    else if(strstr(tmp, SSH_DEF) && strstr(tmp, FAILED))
       extract_words(tmp, false);
-  }
 
   fclose(file);
 }

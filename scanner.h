@@ -4,6 +4,8 @@
 #define AUTH_LOG_DEFAULT_PATH "/var/log/auth.log"
 #define MAX_LINE_SIZE 1000
 #define SSH_DEF "sshd"
+#define FAILED "Failed"
+#define ROOT "root"
 #define MAX_WORDS 16
 #define MAX_TO_LOG 1000
 #define MAX_USERS_TO_LOG 100
