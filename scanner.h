@@ -7,6 +7,7 @@
 #define MAX_WORDS 16
 #define MAX_TO_LOG 1000
 #define MAX_USERS_TO_LOG 100
+#define MAX_CHARS 10
 
 #define PORT_SIZE 20
 #define USER_SIZE 100

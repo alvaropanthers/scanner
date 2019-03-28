@@ -1,0 +1,2 @@
+WHEN USER IS VALID: Feb 25 07:03:52 dailyprog sshd[12430]: Failed password for postgres from 213.234.26.179 port 53065 ssh2
+WHEN USER IS INVALID: Feb 25 07:08:16 dailyprog sshd[12636]: Failed password for invalid user vk from 140.143.93.31 port 57698
