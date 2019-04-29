@@ -25,27 +25,27 @@ void
 print_log(){
   int x;
   for(x = 0; x < currentLogged; ++x){
-    if((logStruct[x].printed == false)){
-      printf("IP:\t%s\nATTEMPTS:\t%d\nUSERS_TRIED:\t%d\n", 
-      logStruct[x].ip, logStruct[x].attempts, logStruct[x].usersCount);
-      
-      printf("USERNAME_ATTEMPTS:");
-      int y;
-      for(y = 0; y < logStruct[x].usersCount; ++y){
-        printf("%s(port: %s)", logStruct[x].users[y].userName, logStruct[x].users[y].port);
-        if((y + 1) < logStruct[x].usersCount)
-          printf(", ");
+    printf("IP:\t%s\nATTEMPTS:\t%d\nUSERS_TRIED:\t%d\n", 
+    logStruct[x].ip, logStruct[x].attempts, logStruct[x].usersCount);
+    
+    printf("USERNAME_ATTEMPTS:");
+    int y;
+    for(y = 0; y < logStruct[x].usersCount; ++y){
+      printf("%s(port: %s)", 
+      logStruct[x].users[y].userName, logStruct[x].users[y].port);
+      if((y + 1) < logStruct[x].usersCount){
+        printf(", ");
       }
-
-      if(y > 0)
-	      printf("\n");
-
-      printf("\n");
-      logStruct[x].printed = true;
     }
+
+    if(y > 0){
+      printf("\n");
+    }
+
+    printf("\n");
   }
   
-    printf("%d records listed\n", x);
+  printf("%d records listed\n", x);
 
 }
 
@@ -80,7 +80,6 @@ log_attempt(char *user, char *ip, char *port){
     strncpy(logStruct[currentLogged].users[logStruct[currentLogged].usersCount].port, port, PORT_SIZE);
     strncpy(logStruct[currentLogged].ip, ip, IP_SIZE);
     logStruct[currentLogged].attempts = 1;
-    logStruct[currentLogged].printed = false;
     ++(logStruct[currentLogged].usersCount);
     ++currentLogged;
   }
@@ -99,7 +98,6 @@ break_line(char *line, int *counter, char *delimiter){
     words[*counter] = tmp;
   }
 
-  //Size of words buffer
   *counter += 1;
 
   return words;
@@ -153,7 +151,6 @@ parse_file(char* fileName)
   }
 
   char tmp[MAX_LINE_SIZE];
-  //fgets is getting a new line at a time
   while(fgets(tmp, MAX_LINE_SIZE, file)){
     if(strstr(tmp, SSH_DEF) && strstr(tmp, FAILED)){
       extract_words(tmp, false);

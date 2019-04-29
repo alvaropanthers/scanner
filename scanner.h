@@ -31,7 +31,6 @@ typedef struct log_t{
   char type[TYPE_SIZE];
   char msg[MAX_LINE_SIZE];
   char ip[IP_SIZE];
-  bool printed;
   user_t users[MAX_USERS_TO_LOG];
   int usersCount;
 }log_t;
