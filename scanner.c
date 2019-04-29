@@ -21,7 +21,8 @@ int main(int argc, char** args){
   return 0;
 }
 
-void print_log(){
+void 
+print_log(){
   int x;
   for(x = 0; x < currentLogged; ++x){
     if((logStruct[x].printed == false)){
@@ -49,7 +50,7 @@ void print_log(){
 }
 
 void 
-log_attempt(char* user, char* ip, char* port){
+log_attempt(char *user, char *ip, char *port){
   if(currentLogged < MAX_TO_LOG){
     for(int x = 0; x < currentLogged; ++x){
       if(strcmp(logStruct[x].ip, ip) == 0){
@@ -86,12 +87,8 @@ log_attempt(char* user, char* ip, char* port){
   
 }
 
-/**
- *  
- * Breaks a line  into a buffer by the given delimiter
- * returns an allocated char** buffer. Buffer must be free
- * */
-char **break_line(char *line, int *counter, char *delimiter){
+char **
+break_line(char *line, int *counter, char *delimiter){
   *counter = 0;
   char **words = (char**)malloc(sizeof(char*) * MAX_WORDS);
   words[*counter] = strtok(line, delimiter);
@@ -165,6 +162,3 @@ parse_file(char* fileName)
 
   fclose(file);
 }
-
-//When user is valid but password incorrect then 14 words
-//When user is invalid then 16 words

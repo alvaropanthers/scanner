@@ -37,9 +37,9 @@ typedef struct log_t{
 }log_t;
 
 
-char* strext(char* buffer, char delstart, char delstop);
-int extract_pid(char* buffer);
-void log_attempt(char* user, char* ip, char* port);
+char *strext(char *buffer, char delstart, char delstop);
+int extract_pid(char *buffer);
+void log_attempt(char *user, char *ip, char *port);
 void extract_words(char *msg, bool root);
-void parse_file(char* fileName);
+void parse_file(char *fileName);
 void print_log();
