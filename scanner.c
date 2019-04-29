@@ -8,10 +8,13 @@ log_t logStruct[MAX_TO_LOG];
 int currentLogged = 0;
 
 int main(int argc, char** args){
-  if(argc > 1)
+  
+  if(argc > 1){
     parse_file(args[1]);
-  else
+  }
+  else{
     parse_file(NULL);
+  }
 
   print_log();
 
@@ -22,8 +25,8 @@ void print_log(){
   int x;
   for(x = 0; x < currentLogged; ++x){
     if((logStruct[x].printed == false)){
-      printf("PID:\t%d\nIP:\t%s\nATTEMPTS:\t%d\nUSERS_TRIED:\t%d\n", 
-      logStruct[x].pid, logStruct[x].ip, logStruct[x].attempts, logStruct[x].usersCount);
+      printf("IP:\t%s\nATTEMPTS:\t%d\nUSERS_TRIED:\t%d\n", 
+      logStruct[x].ip, logStruct[x].attempts, logStruct[x].usersCount);
       
       printf("USERNAME_ATTEMPTS:");
       int y;
@@ -45,48 +48,25 @@ void print_log(){
 
 }
 
-char* strext(char* buffer, char delstart, char delstop){
-  char* tmp = malloc(MAX_CHARS * sizeof(char));
-  int found = false;
-  int counter = 0;
-  for(int x = 1; x < strlen(buffer); ++x){
-    if(buffer[x - 1] == delstart)
-      found = true;
-    else if(buffer[x] == delstop)
-      found = false;
-
-    if(found){
-      tmp[counter] = buffer[x];
-      ++counter;
-    }
-  }
-
-  return tmp;
-}
-
-int extract_pid(char* buffer){
-  char* tmp = strext(buffer, '[', ']');
-  int pid = atoi(tmp);
-  free(tmp);
-  return  pid;
-}
-
-void log_attempt(int pid, char* user, char* ip, char* port){
+void 
+log_attempt(char* user, char* ip, char* port){
   if(currentLogged < MAX_TO_LOG){
     for(int x = 0; x < currentLogged; ++x){
       if(strcmp(logStruct[x].ip, ip) == 0){
         ++(logStruct[x].attempts);
 
         bool userFound = false;
-        for(int y = 0; y < logStruct[x].usersCount; ++y)
-          if(strcmp(logStruct[x].users[y].userName, user) == 0)
+        for(int y = 0; y < logStruct[x].usersCount; ++y){
+          if(strcmp(logStruct[x].users[y].userName, user) == 0){
             userFound = true;
+          }
+        }
 
         if(!userFound){
           int usCount = logStruct[x].usersCount;
           if(usCount < MAX_USERS_TO_LOG){
-            strcpy(logStruct[x].users[usCount].userName, user);
-            strcpy(logStruct[x].users[usCount].port, port);
+            strncpy(logStruct[x].users[usCount].userName, user, USER_SIZE);
+            strncpy(logStruct[x].users[usCount].port, port, PORT_SIZE);
             ++(logStruct[x].usersCount);
           }
         }
@@ -95,10 +75,9 @@ void log_attempt(int pid, char* user, char* ip, char* port){
       }
     }
 
-    logStruct[currentLogged].pid = pid;
-    strcpy(logStruct[currentLogged].users[logStruct[currentLogged].usersCount].userName, user);
-    strcpy(logStruct[currentLogged].users[logStruct[currentLogged].usersCount].port, port);
-    strcpy(logStruct[currentLogged].ip, ip);
+    strncpy(logStruct[currentLogged].users[logStruct[currentLogged].usersCount].userName, user, USER_SIZE);
+    strncpy(logStruct[currentLogged].users[logStruct[currentLogged].usersCount].port, port, PORT_SIZE);
+    strncpy(logStruct[currentLogged].ip, ip, IP_SIZE);
     logStruct[currentLogged].attempts = 1;
     logStruct[currentLogged].printed = false;
     ++(logStruct[currentLogged].usersCount);
@@ -112,49 +91,64 @@ void log_attempt(int pid, char* user, char* ip, char* port){
  * Breaks a line  into a buffer by the given delimiter
  * returns an allocated char** buffer. Buffer must be free
  * */
-char** break_line(char* line, int* counter, char* delimiter){
-  char** words = (char**)malloc(sizeof(char*) * MAX_WORDS);
+char **break_line(char *line, int *counter, char *delimiter){
+  *counter = 0;
+  char **words = (char**)malloc(sizeof(char*) * MAX_WORDS);
   words[*counter] = strtok(line, delimiter);
+  
   char* tmp;
   while((tmp = strtok(NULL, " ")) && *counter < MAX_WORDS){
     ++(*counter);
     words[*counter] = tmp;
   }
 
+  //Size of words buffer
+  *counter += 1;
+
   return words;
 }
 
-void extract_words(char* line, bool root){
+void 
+extract_words(char *line, bool root){
   int counter = 0;
   char** words = break_line(line, &counter, " ");
 
-  int pid;
-  char user[100], ip[100], port[100];
-  if(counter == (MAX_WORDS - 1)){
-    for(int x = 0; x < MAX_WORDS; ++x)
-      if(((strcmp(words[x], "user") == 0) && !root) || ((strcmp(words[x], "for") == 0) && root))
-        if(root)
-          strcpy(user, "root");
-        else
-          strcpy(user, words[x + 1]); 
-        else if(strcmp(words[x], "from") == 0)
-          strcpy(ip, words[x + 1]); 
-        else if(strcmp(words[x], "port") == 0)
-          strcpy(port, words[x + 1]);
-        else if(strstr(words[x], "sshd"))
-          pid = extract_pid(words[x]);
+  if(counter){
+    int length = 0;
+    char user[USER_SIZE], ip[IP_SIZE], port[PORT_SIZE];
+    
+    if(counter == MIN_WORDS){
+      length = MIN_WORDS;
+    }else if(counter == MAX_WORDS){
+      length = MAX_WORDS;
+    }
+    
+    for(int x = 0; x < length; ++x){
+      if((length == MIN_WORDS && strcmp(words[x], "for") == 0) 
+      || (length == MAX_WORDS && strcmp(words[x], "user") == 0)){
+        strncpy(user, words[x + 1], USER_SIZE);
+      }else if(strcmp(words[x], "from") == 0){
+        strncpy(ip, words[x + 1], IP_SIZE);
+      }else if(strcmp(words[x], "port") == 0){
+        strncpy(port, words[x + 1], PORT_SIZE);
+      }
+    }
+    
+    log_attempt(user, ip, port);
   }
 
   free(words);
-  log_attempt(pid, user, ip, port); //This should not be done here
 }
 
-void parse_file(char* fileName){
+void 
+parse_file(char* fileName)
+{
   FILE* file;
-  if(fileName == NULL)
+  if(fileName == NULL){
     file = fopen(AUTH_LOG_DEFAULT_PATH, "r");
-  else
+  }else{
     file = fopen(fileName, "r");
+  }
 
   if(file == NULL){
     fprintf(stderr, "Error: %s\n", strerror(errno));
@@ -163,11 +157,14 @@ void parse_file(char* fileName){
 
   char tmp[MAX_LINE_SIZE];
   //fgets is getting a new line at a time
-  while(fgets(tmp, MAX_LINE_SIZE, file))
-    if(strstr(tmp, SSH_DEF) && strstr(tmp, FAILED) && strstr(tmp, ROOT))
-      extract_words(tmp, true);
-    else if(strstr(tmp, SSH_DEF) && strstr(tmp, FAILED))
+  while(fgets(tmp, MAX_LINE_SIZE, file)){
+    if(strstr(tmp, SSH_DEF) && strstr(tmp, FAILED)){
       extract_words(tmp, false);
+    }
+  }
 
   fclose(file);
 }
+
+//When user is valid but password incorrect then 14 words
+//When user is invalid then 16 words
